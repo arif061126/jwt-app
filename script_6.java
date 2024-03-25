@@ -1,0 +1,62 @@
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+
+import java.security.KeyFactory;
+import java.security.interfaces.RSAPublicKey;
+import java.security.spec.X509EncodedKeySpec;
+import java.util.Base64;
+
+public class JWTVerificationApp {
+
+    public static void main(String[] args) {
+        
+        // Hardcoded public key and JWT token
+        String publicKeyString = "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEA6PStBO2eTNXiuNcPtQXz" +
+                "3NU/3NBZ5K1hFegz9myvlCGBd+PzLfX6O9UJ2m2Sg5VG5qj6jAl7C0rsZnZZkNyA" +
+                "MzWjGXJJjI8wxPYzLDB3LJNxG3JihueeTmInzyvYv/X7QLt8H6kLlFPpZzGhJxFG" +
+                "zWNdQZX2AQfrjGO4p7Mg3cVgQK27U8B3G/A1ZjzMx5n5cSlFKtMn71rQnmr1x4BU" +
+                "SS2q8tSKYX4e0/ZzAl3cMRLjBYGwF8bwq4eTwvcmqBc1jMumgHf4tMNdYL6H8a3F" +
+                "jqoeDKEl5yqXaH0k8+K8z9ZcYI3xR0RSdzUcHvwnafJ7yn29i4N3M0Xfdq/+3sO0" +
+                "lwIDAQAB";
+
+        String jwtToken = "eyJhbGciOiJSUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyfQ.YFGAAdUwxWyTnrL0P1uInFbJq9fD-EukDxGvvH2_8_xmO9oZB-IRGk6r5NhZKWNSNG_cFW3qLQit7RINBp4ejP7PXavChBDyFpBN8yYkRrTJYCGQcgfqV_nH0cS9oV8OMy2i_lIbH50pZZ6GQFS4g2WGrJFyY_vxU3lOosSsnJ9I";
+
+        // Verify the JWT token using the public key
+        boolean verificationResult = verifyJWTToken(publicKeyString, jwtToken);
+
+        if (verificationResult) {
+            System.out.println("JWT Token is valid.");
+        } else {
+            System.out.println("JWT Token is invalid.");
+        }
+    }
+
+    public static boolean verifyJWTToken(String publicKeyString, String jwtToken) {
+        try {
+            // Decode the public key string
+            byte[] publicKeyBytes = Base64.getDecoder().decode(publicKeyString);
+            //KeyFactory keyFactory = KeyFactory.getInstance("RSA");
+            //RSAPublicKey publicKey = (RSAPublicKey) keyFactory.generatePublic(new X509EncodedKeySpec(publicKeyBytes));
+
+            RSAPublicKey publicKey = (RSAPublicKey) java.security.KeyFactory.getInstance("RSA")
+                    .generatePublic(new java.security.spec.X509EncodedKeySpec(publicKeyBytes));
+
+            // Create Algorithm instance with the provided public key
+            Algorithm algorithm = Algorithm.RSA256(publicKey, null);
+
+            // Create JWTVerifier instance
+            JWTVerifier verifier = JWT.require(algorithm).build();
+
+            // Verify the JWT token
+            verifier.verify(jwtToken);
+
+            // Verification successful
+            return true;
+        } catch (JWTVerificationException | java.security.spec.InvalidKeySpecException | java.security.NoSuchAlgorithmException e) {
+            // Verification failed
+            return false;
+        }
+    }
+}
